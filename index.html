@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -141,6 +141,100 @@
             font-weight: 500;
             margin-bottom: 1rem;
             color: var(--rose-framboise);
+        }
+
+        /* Page de garde */
+        .garde-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 120px);
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(40, 144, 208, 0.05), rgba(212, 7, 89, 0.05));
+        }
+
+        .garde-header {
+            margin-bottom: 3rem;
+        }
+
+        .garde-title {
+            font-family: 'Akrobat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--bleu-principal);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .garde-subtitle {
+            font-family: 'Akrobat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--rose-framboise);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .garde-message {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 3px solid var(--bleu-principal);
+            max-width: 600px;
+            position: relative;
+        }
+
+        .message-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .message-text {
+            font-family: 'Akrobat', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+            margin: 0;
+        }
+
+        .message-text strong {
+            color: var(--bleu-principal);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .message-text em {
+            color: var(--violet);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .garde-cta {
+            background: var(--fond-encadre);
+            border: 2px solid var(--vert-vif);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+        }
+
+        .cta-box h3 {
+            font-family: 'Akrobat', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--violet);
+            margin-bottom: 1rem;
+        }
+
+        .cta-box p {
+            font-family: 'Akrobat', sans-serif;
+            font-size: 1rem;
+            color: #666;
+            margin: 0;
         }
 
         /* Couverture */
@@ -330,6 +424,31 @@
                 padding: 1rem;
             }
 
+            .garde-container {
+                padding: 1rem;
+            }
+
+            .garde-title {
+                font-size: 2.5rem;
+            }
+
+            .garde-subtitle {
+                font-size: 1rem;
+            }
+
+            .garde-message {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .message-text {
+                font-size: 1rem;
+            }
+
+            .garde-cta {
+                padding: 1.5rem;
+            }
+
             .cover-title {
                 font-size: 2.5rem;
             }
@@ -388,8 +507,37 @@
             </div>
         </div>
 
-        <!-- Page 1: Couverture -->
+        <!-- Page 1: Page de garde -->
         <div class="page active" id="page1">
+            <div class="garde-container">
+                <div class="garde-header">
+                    <h1 class="garde-title">Mon carnet de voyage</h1>
+                    <div class="garde-subtitle">Mission Locale Pays Basque</div>
+                </div>
+                
+                <div class="garde-message">
+                    <div class="message-icon">✈️</div>
+                    <p class="message-text">
+                        <strong>Ton voyage commence ici !</strong><br><br>
+                        Ce carnet, c'est bien plus qu'un simple cahier. C'est ton compagnon de route, 
+                        le témoin de tes découvertes et de ta transformation. Chaque page que tu rempliras 
+                        sera une étape de ton évolution personnelle.<br><br>
+                        <em>Prends le temps de t'exprimer, de noter tes ressentis, tes peurs et tes victoires. 
+                        Dans quelques mois, tu seras fier de relire ton parcours et de voir le chemin parcouru.</em>
+                    </p>
+                </div>
+
+                <div class="garde-cta">
+                    <div class="cta-box">
+                        <h3>Prêt(e) à commencer cette aventure ?</h3>
+                        <p>Clique sur "Suivant" pour débuter ton carnet de voyage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 2: Couverture -->
+        <div class="page" id="page2">
             <div class="cover-bg">
                 Mon Mon de de Carnet Carnet Voyage Voyage Mon Mon de de Carnet Carnet Voyage Voyage
             </div>
@@ -399,12 +547,11 @@
                     <label>Nom</label>
                     <input type="text" id="nom" placeholder="Votre nom">
                 </div>
-
             </div>
         </div>
 
-        <!-- Page 2: Profil du voyageur -->
-        <div class="page" id="page2">
+        <!-- Page 3: Profil du voyageur -->
+        <div class="page" id="page3">
             <h2>👤 Profil du voyageur</h2>
             <div class="input-zone">
                 <label>Nom</label>
@@ -424,8 +571,8 @@
             </div>
         </div>
 
-        <!-- Page 3: Expériences liées au projet -->
-        <div class="page" id="page3">
+        <!-- Page 4: Expériences liées au projet -->
+        <div class="page" id="page4">
             <h2>🎯 Expériences liées au projet</h2>
             <div class="input-zone">
                 <label>Mes expériences</label>
@@ -433,8 +580,8 @@
             </div>
         </div>
 
-        <!-- Page 4: Programme et missions -->
-        <div class="page" id="page4">
+        <!-- Page 5: Programme et missions -->
+        <div class="page" id="page5">
             <h2>Programme et missions</h2>
             <div class="input-zone">
                 <label>Programme</label>
@@ -446,8 +593,8 @@
             </div>
         </div>
 
-        <!-- Page 5: Points forts -->
-        <div class="page" id="page5">
+        <!-- Page 6: Points forts -->
+        <div class="page" id="page6">
             <h2>Points forts</h2>
             <div class="input-zone">
                 <label>Mes points forts</label>
@@ -459,8 +606,8 @@
             </div>
         </div>
 
-        <!-- Page 6: Évaluation avant le départ -->
-        <div class="page" id="page6">
+        <!-- Page 7: Évaluation avant le départ -->
+        <div class="page" id="page7">
             <h2>Évaluation avant le départ</h2>
             <div class="evaluation-grid">
                 <div class="slider-container">
@@ -546,8 +693,8 @@
             </div>
         </div>
 
-        <!-- Page 7: Portrait de la mission -->
-        <div class="page" id="page7">
+        <!-- Page 8: Portrait de la mission -->
+        <div class="page" id="page8">
             <h2>Portrait de la mission</h2>
             <div class="input-zone">
                 <label>Pourquoi ce choix</label>
@@ -559,8 +706,8 @@
             </div>
         </div>
 
-        <!-- Page 8: Motivations -->
-        <div class="page" id="page8">
+        <!-- Page 9: Motivations -->
+        <div class="page" id="page9">
             <h2>Motivations</h2>
             <div class="input-zone">
                 <label>Motivations</label>
@@ -572,8 +719,8 @@
             </div>
         </div>
 
-        <!-- Page 9: Portrait de la destination -->
-        <div class="page" id="page9">
+        <!-- Page 10: Portrait de la destination -->
+        <div class="page" id="page10">
             <h2>Portrait de la destination</h2>
             <div class="input-zone">
                 <label>Date et durée</label>
@@ -589,8 +736,8 @@
             </div>
         </div>
 
-        <!-- Page 10: Première journée -->
-        <div class="page" id="page10">
+        <!-- Page 11: Première journée -->
+        <div class="page" id="page11">
             <h2>Première journée</h2>
             <div class="input-zone">
                 <label>Date</label>
@@ -606,8 +753,8 @@
             </div>
         </div>
 
-        <!-- Page 11: Première semaine -->
-        <div class="page" id="page11">
+        <!-- Page 12: Première semaine -->
+        <div class="page" id="page12">
             <h2>Première semaine</h2>
             <div class="input-zone">
                 <label>Date</label>
@@ -623,8 +770,8 @@
             </div>
         </div>
 
-        <!-- Page 12: Mission en cours -->
-        <div class="page" id="page12">
+        <!-- Page 13: Mission en cours -->
+        <div class="page" id="page13">
             <h2>Mission en cours</h2>
             <div class="input-zone">
                 <label>Ce qui plaît</label>
@@ -644,8 +791,8 @@
             </div>
         </div>
 
-        <!-- Page 13: Au fil du temps 1 -->
-        <div class="page" id="page13">
+        <!-- Page 14: Au fil du temps 1 -->
+        <div class="page" id="page14">
             <h2>Au fil du temps</h2>
             <div class="input-zone">
                 <label>Date</label>
@@ -674,8 +821,8 @@
             </div>
         </div>
 
-        <!-- Page 14: Au fil du temps 2 -->
-        <div class="page" id="page14">
+        <!-- Page 15: Au fil du temps 2 -->
+        <div class="page" id="page15">
             <h2>Au fil du temps</h2>
             <div class="input-zone">
                 <label>Date</label>
@@ -704,8 +851,8 @@
             </div>
         </div>
 
-        <!-- Page 15: Au fil du temps 3 -->
-        <div class="page" id="page15">
+        <!-- Page 16: Au fil du temps 3 -->
+        <div class="page" id="page16">
             <h2>Au fil du temps</h2>
             <div class="input-zone">
                 <label>Date</label>
@@ -727,8 +874,8 @@
             </div>
         </div>
 
-        <!-- Page 16: Évaluation retour -->
-        <div class="page" id="page16">
+        <!-- Page 17: Évaluation retour -->
+        <div class="page" id="page17">
             <h2>Évaluation retour</h2>
             <div class="evaluation-grid">
                 <div class="slider-container">
@@ -814,8 +961,8 @@
             </div>
         </div>
 
-        <!-- Page 17: Adaptation à la vie locale -->
-        <div class="page" id="page17">
+        <!-- Page 18: Adaptation à la vie locale -->
+        <div class="page" id="page18">
             <h2>Adaptation à la vie locale</h2>
             <div class="input-zone">
                 <label>Adaptation à la vie locale</label>
@@ -823,8 +970,8 @@
             </div>
         </div>
 
-        <!-- Page 18: Retour - Et maintenant ? -->
-        <div class="page" id="page18">
+        <!-- Page 19: Retour - Et maintenant ? -->
+        <div class="page" id="page19">
             <h2>Retour - Et maintenant ?</h2>
             <div class="input-zone">
                 <label>Comment je me sens</label>
@@ -844,7 +991,7 @@
 
     <script>
         let currentPage = 1;
-        const totalPages = 18;
+        const totalPages = 19;
         
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
@@ -997,5 +1144,5 @@
             alert('Fonction d\'export PDF à implémenter avec jsPDF');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966d378226b26fdc',t:'MTc1Mzc5ODQwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966d6dc804fa6056',t:'MTc1MzgwMDYyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
