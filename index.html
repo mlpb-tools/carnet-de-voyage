@@ -1,9 +1,11 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon carnet de voyage</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Akrobat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -35,9 +37,10 @@
             min-height: 100vh;
             background: white;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding-bottom: 100px; /* Espace pour la navigation en bas */
         }
 
-        /* Navigation */
+        /* Header avec barre de progression */
         .nav-header {
             background: linear-gradient(135deg, var(--bleu-principal), var(--rose-framboise));
             padding: 1rem;
@@ -45,45 +48,7 @@
             top: 0;
             z-index: 100;
         }
-
-        .nav-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .nav-btn {
-            background: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'Akrobat', sans-serif;
-            font-weight: 600;
-            color: var(--bleu-principal);
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .page-indicator {
-            background: white;
-            padding: 0.5rem 1rem;
-            border-radius: 15px;
-            font-family: 'Akrobat', sans-serif;
-            font-weight: 600;
-            color: var(--bleu-principal);
-        }
-
+        
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -98,12 +63,66 @@
             transition: width 0.3s ease;
             border-radius: 3px;
         }
+        
+        /* Navigation en bas de page */
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            padding: 1rem;
+            z-index: 100;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .nav-btn {
+            background: var(--bleu-principal);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Akrobat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: var(--rose-framboise);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background: #ccc;
+        }
+
+        .page-indicator {
+            font-family: 'Akrobat', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--bleu-principal);
+        }
 
         /* Pages */
         .page {
             display: none;
             padding: 2rem;
-            min-height: calc(100vh - 120px);
             animation: fadeIn 0.5s ease-in;
         }
 
@@ -116,32 +135,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .page h1 {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 700;
+        .page h1, .page h2, .page h3 {
             text-align: center;
             margin-bottom: 2rem;
-            color: var(--bleu-principal);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
-
-        .page h2 {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--bleu-principal);
-            text-align: center;
-        }
-
-        .page h3 {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            color: var(--rose-framboise);
-        }
+        
+        .page h1 { font-size: 2.5rem; font-weight: 700; color: var(--bleu-principal); }
+        .page h2 { font-size: 2rem; font-weight: 600; color: var(--bleu-principal); }
+        .page h3 { font-size: 1.5rem; font-weight: 500; color: var(--rose-framboise); }
 
         /* Page de garde */
         .garde-container {
@@ -149,866 +150,377 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: calc(100vh - 120px);
             padding: 2rem;
             text-align: center;
-            background: linear-gradient(135deg, rgba(40, 144, 208, 0.05), rgba(212, 7, 89, 0.05));
         }
-
-        .garde-header {
-            margin-bottom: 3rem;
-        }
-
-        .garde-title {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: var(--bleu-principal);
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .garde-subtitle {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: var(--rose-framboise);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .garde-message {
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border: 3px solid var(--bleu-principal);
-            max-width: 600px;
-            position: relative;
-        }
-
-        .message-icon {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-        }
-
-        .message-text {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #333;
-            margin: 0;
-        }
-
-        .message-text strong {
-            color: var(--bleu-principal);
-            font-weight: 700;
-            font-size: 1.3rem;
-        }
-
-        .message-text em {
-            color: var(--violet);
-            font-style: italic;
-            font-weight: 500;
-        }
-
-        .garde-cta {
-            background: var(--fond-encadre);
-            border: 2px solid var(--vert-vif);
-            border-radius: 15px;
-            padding: 2rem;
-            max-width: 500px;
-        }
-
-        .cta-box h3 {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--violet);
-            margin-bottom: 1rem;
-        }
-
-        .cta-box p {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1rem;
-            color: #666;
-            margin: 0;
-        }
+        .garde-title { font-size: 3.5rem; }
+        .garde-subtitle { font-size: 1.2rem; color: var(--rose-framboise); }
+        .garde-message { background: white; border-radius: 20px; padding: 2.5rem; margin: 2rem 0; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid var(--bleu-principal); max-width: 600px; }
+        .message-icon { font-size: 3rem; margin-bottom: 1.5rem; }
+        .message-text { font-size: 1.1rem; }
 
         /* Couverture */
-        .cover-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            font-family: 'Akrobat', sans-serif;
-            font-size: 4rem;
-            color: rgba(40, 144, 208, 0.08);
-            z-index: 0;
-            overflow: hidden;
-            line-height: 1.2;
-            transform: rotate(-15deg);
-            white-space: nowrap;
-        }
-
-        .cover-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 4rem 2rem 2rem 2rem;
-        }
-
-        .cover-title {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: var(--bleu-principal);
-            margin-bottom: 3rem;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
-        }
-
-
+        .cover-content { padding: 4rem 2rem 2rem 2rem; }
 
         /* Zones de saisie */
         .input-zone {
             position: relative;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             background: var(--fond-encadre);
             border-radius: 15px;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
             border: 2px solid var(--bleu-principal);
-            border-style: solid;
         }
-
         .input-zone label {
             position: absolute;
-            top: -10px;
+            top: -15px;
             left: 20px;
             background: var(--rose-framboise);
             padding: 0.3rem 0.8rem;
             border-radius: 10px;
-            font-family: 'Akrobat', sans-serif;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: white;
         }
-
-        .input-zone input,
-        .input-zone textarea {
+        .input-zone input, .input-zone textarea {
             width: 100%;
             border: none;
             background: transparent;
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1rem;
-            font-weight: 400;
+            font-family: inherit;
+            font-size: 1.1rem;
             padding: 0.5rem;
-            resize: vertical;
             outline: none;
-            color: #333;
         }
-
-        .input-zone textarea {
-            min-height: 120px;
-            line-height: 1.8;
-        }
-
-        /* Sliders d'évaluation */
-        .evaluation-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .slider-container {
-            background: var(--fond-encadre);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 2px solid var(--bleu-principal);
-        }
-
-        .slider-label {
-            font-family: 'Akrobat', sans-serif;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--violet);
+        .input-zone textarea { min-height: 120px; }
+        
+        /* Sliders */
+        .evaluation-note {
             text-align: center;
-        }
-
-        .slider-wrapper {
-            position: relative;
-            margin: 1rem 0;
-        }
-
-        .slider {
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: #ddd;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--bleu-principal);
-            cursor: pointer;
-            border: 3px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--bleu-principal);
-            cursor: pointer;
-            border: 3px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
+            font-style: italic;
             color: #666;
-            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
         }
+        .evaluation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .slider-container { background: var(--fond-encadre); padding: 1.5rem; border-radius: 15px; border: 2px solid var(--bleu-principal); }
+        .slider-label { font-weight: 600; margin-bottom: 1rem; color: var(--violet); text-align: center; }
+        .slider-wrapper { position: relative; margin: 1rem 0; }
+        .slider { width: 100%; -webkit-appearance: none; height: 8px; border-radius: 4px; background: #ddd; outline: none;}
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--bleu-principal); cursor: pointer; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .slider-labels { display: flex; justify-content: space-between; font-size: 0.8rem; }
+        .slider-value { position: absolute; top: -35px; background: var(--orange); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600; color: white; transform: translateX(-50%); }
 
-        .slider-value {
-            position: absolute;
-            top: -35px;
-            background: var(--orange);
-            padding: 0.2rem 0.6rem;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            transform: translateX(-50%);
-            transition: left 0.2s ease;
+        /* Section photos */
+        .photo-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
-
-        /* Sections répétables */
-        .repeatable-section {
-            border: 2px solid var(--vert-vif);
+        .photo-upload-box {
+            border: 2px dashed var(--vert-vif);
             border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            background: rgba(149, 193, 81, 0.1);
-        }
-
-        .section-title {
-            font-family: 'Akrobat', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--violet);
-            margin-bottom: 1rem;
+            padding: 1rem;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .photo-upload-box:hover {
+            background-color: rgba(149, 193, 81, 0.1);
+        }
+        .photo-upload-box input[type="file"] {
+            display: none;
+        }
+        .photo-upload-box .upload-prompt {
+            color: var(--vert-vif);
+        }
+        .photo-upload-box .upload-prompt span {
+            font-size: 2rem;
+            display: block;
+        }
+        .photo-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
+        /* Bouton PDF */
+        .pdf-btn {
+            display: block;
+            margin: 2rem auto 0 auto;
+            background: var(--vert-vif);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Akrobat', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .pdf-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Styles pour l'impression / PDF */
+        @media print {
+            body, .container {
                 margin: 0;
+                padding: 0;
                 box-shadow: none;
             }
-
+            .nav-header, .footer-nav, .pdf-btn {
+                display: none !important;
+            }
             .page {
-                padding: 1rem;
+                display: block !important; /* Affiche toutes les pages */
+                page-break-after: always;
+                padding: 1cm;
             }
-
-            .garde-container {
-                padding: 1rem;
+            .page:last-of-type {
+                page-break-after: avoid;
             }
-
-            .garde-title {
-                font-size: 2.5rem;
-            }
-
-            .garde-subtitle {
-                font-size: 1rem;
-            }
-
-            .garde-message {
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .message-text {
-                font-size: 1rem;
-            }
-
-            .garde-cta {
-                padding: 1.5rem;
-            }
-
-            .cover-title {
-                font-size: 2.5rem;
-            }
-
-            .page h1 {
-                font-size: 2rem;
-            }
-
-            .page h2 {
-                font-size: 1.5rem;
-            }
-
-            .evaluation-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-controls {
-                flex-direction: column;
-                gap: 1rem;
+            .input-zone, .slider-container, .photo-upload-box {
+                border: 1px solid #ccc;
             }
         }
-
-        /* Auto-save indicator */
-        .save-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-        }
-
-        .save-indicator.show {
-            opacity: 1;
+        
+        @media (max-width: 768px) {
+            .page { padding: 1rem; }
+            .footer-nav { padding: 0.5rem; }
+            .nav-btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .page-indicator { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Navigation -->
+    <div class="container" id="carnet-container">
+        <!-- Header avec barre de progression -->
         <div class="nav-header">
-            <div class="nav-controls">
-                <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">← Précédent</button>
-                <div class="page-indicator">
-                    <span id="currentPageNum">1</span> / <span id="totalPages">18</span>
-                </div>
-                <button class="nav-btn" id="nextBtn" onclick="changePage(1)">Suivant →</button>
-            </div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
 
-        <!-- Page 1: Page de garde -->
-        <div class="page active" id="page1">
-            <div class="garde-container">
-                <div class="garde-header">
+        <!-- Pages du carnet -->
+        <div id="pages-wrapper">
+            <!-- Page 1: Page de garde -->
+            <div class="page active" id="page1">
+                <div class="garde-container">
                     <h1 class="garde-title">Mon carnet de voyage</h1>
-                    <div class="garde-subtitle">Mission Locale Pays Basque</div>
-                </div>
-                
-                <div class="garde-message">
-                    <div class="message-icon">✈️</div>
-                    <p class="message-text">
-                        <strong>Ton voyage commence ici !</strong><br><br>
-                        Ce carnet, c'est bien plus qu'un simple cahier. C'est ton compagnon de route, 
-                        le témoin de tes découvertes et de ta transformation. Chaque page que tu rempliras 
-                        sera une étape de ton évolution personnelle.<br><br>
-                        <em>Prends le temps de t'exprimer, de noter tes ressentis, tes peurs et tes victoires. 
-                        Dans quelques mois, tu seras fier de relire ton parcours et de voir le chemin parcouru.</em>
-                    </p>
-                </div>
-
-                <div class="garde-cta">
-                    <div class="cta-box">
-                        <h3>Prêt(e) à commencer cette aventure ?</h3>
-                        <p>Clique sur "Suivant" pour débuter ton carnet de voyage</p>
+                    <p class="garde-subtitle">Mission Locale Pays Basque</p>
+                    <div class="garde-message">
+                        <div class="message-icon">✈️</div>
+                        <p class="message-text">
+                            <strong>Ton voyage commence ici !</strong><br><br>
+                            Ce carnet est ton compagnon de route, le témoin de tes découvertes et de ta transformation. Chaque page que tu rempliras sera une étape de ton évolution.
+                        </p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Page 2: Couverture -->
-        <div class="page" id="page2">
-            <div class="cover-bg">
-                Mon Mon de de Carnet Carnet Voyage Voyage Mon Mon de de Carnet Carnet Voyage Voyage
-            </div>
-            <div class="cover-content">
-                <h1 class="cover-title">Mon carnet de voyage</h1>
+            <!-- Page 2: Couverture -->
+            <div class="page" id="page2">
+                <h1>Mon carnet de voyage</h1>
                 <div class="input-zone">
-                    <label>Nom</label>
-                    <input type="text" id="nom" placeholder="Votre nom">
+                    <label>Nom & Prénom</label>
+                    <input type="text" id="nom_prenom" placeholder="Inscris ton nom et prénom">
                 </div>
             </div>
-        </div>
 
-        <!-- Page 3: Profil du voyageur -->
-        <div class="page" id="page3">
-            <h2>👤 Profil du voyageur</h2>
-            <div class="input-zone">
-                <label>Nom</label>
-                <input type="text" id="profil_nom">
+            <!-- Page 3: Profil du voyageur -->
+            <div class="page" id="page3">
+                <h2>👤 Profil du voyageur</h2>
+                <div class="input-zone"><label>Âge</label><input type="number" id="profil_age"></div>
+                <div class="input-zone"><label>Destination</label><input type="text" id="profil_destination"></div>
             </div>
-            <div class="input-zone">
-                <label>Prénom</label>
-                <input type="text" id="profil_prenom">
-            </div>
-            <div class="input-zone">
-                <label>Âge</label>
-                <input type="number" id="profil_age">
-            </div>
-            <div class="input-zone">
-                <label>Destination</label>
-                <input type="text" id="profil_destination">
-            </div>
-        </div>
 
-        <!-- Page 4: Expériences liées au projet -->
-        <div class="page" id="page4">
-            <h2>🎯 Expériences liées au projet</h2>
-            <div class="input-zone">
-                <label>Mes expériences</label>
-                <textarea id="experiences" placeholder="Décrivez vos expériences liées au projet..."></textarea>
+            <!-- Page 4: Expériences liées au projet -->
+            <div class="page" id="page4">
+                <h2>🎯 Expériences liées au projet</h2>
+                <div class="input-zone"><label>Mes expériences</label><textarea id="experiences" placeholder="Décris tes expériences..."></textarea></div>
             </div>
-        </div>
 
-        <!-- Page 5: Programme et missions -->
-        <div class="page" id="page5">
-            <h2>Programme et missions</h2>
-            <div class="input-zone">
-                <label>Programme</label>
-                <textarea id="programme" placeholder="Décrivez le programme..."></textarea>
+            <!-- Page 5: Type d'expériences -->
+            <div class="page" id="page5">
+                <h2>Type d'expériences</h2>
+                <div class="input-zone"><label>Type d'expériences</label><textarea id="type_experience" placeholder="Stages, échange de jeunes, volontariat..."></textarea></div>
+                <div class="input-zone"><label>Missions</label><textarea id="missions" placeholder="Décris tes missions..."></textarea></div>
             </div>
-            <div class="input-zone">
-                <label>Missions</label>
-                <textarea id="missions" placeholder="Décrivez vos missions..."></textarea>
-            </div>
-        </div>
 
-        <!-- Page 6: Points forts -->
-        <div class="page" id="page6">
-            <h2>Points forts</h2>
-            <div class="input-zone">
-                <label>Mes points forts</label>
-                <textarea id="points_forts" placeholder="Quels sont vos points forts ?"></textarea>
+            <!-- Page 6: Points forts -->
+            <div class="page" id="page6">
+                <h2>Points forts & Axes d'amélioration</h2>
+                <div class="input-zone"><label>Mes points forts</label><textarea id="points_forts" placeholder="Quels sont tes points forts ?"></textarea></div>
+                <div class="input-zone"><label>Ce sur quoi je veux m'améliorer</label><textarea id="ameliorer" placeholder="Sur quoi souhaites-tu t'améliorer ?"></textarea></div>
             </div>
-            <div class="input-zone">
-                <label>Ce sur quoi je veux m'améliorer</label>
-                <textarea id="ameliorer" placeholder="Sur quoi souhaitez-vous vous améliorer ?"></textarea>
-            </div>
-        </div>
 
-        <!-- Page 7: Évaluation avant le départ -->
-        <div class="page" id="page7">
-            <h2>Évaluation avant le départ</h2>
-            <div class="evaluation-grid">
-                <div class="slider-container">
-                    <div class="slider-label">Motivation</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_motivation">
-                        <div class="slider-value" id="eval_motivation_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Adaptation</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_adaptation">
-                        <div class="slider-value" id="eval_adaptation_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Stress</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_stress">
-                        <div class="slider-value" id="eval_stress_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Langue</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_langue">
-                        <div class="slider-value" id="eval_langue_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Différence voyage/volontariat</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_difference">
-                        <div class="slider-value" id="eval_difference_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Culture</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_culture">
-                        <div class="slider-value" id="eval_culture_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Savoir voyager</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_voyager">
-                        <div class="slider-value" id="eval_voyager_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Vivre en groupe</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="eval_groupe">
-                        <div class="slider-value" id="eval_groupe_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
+            <!-- Page 7: Évaluation avant le départ -->
+            <div class="page" id="page7">
+                <h2>Auto-évaluation avant le départ</h2>
+                <p class="evaluation-note">Échelle de 1 (le plus faible) à 5 (le plus fort)</p>
+                <div class="evaluation-grid">
+                    <div class="slider-container"><div class="slider-label">Compétences linguistiques</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_linguistiques"><div class="slider-value" id="eval_linguistiques_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Confiance en ma capacité à partir</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_confiance"><div class="slider-value" id="eval_confiance_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Prêt(e) à découvrir une nouvelle culture</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_culture"><div class="slider-value" id="eval_culture_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Vivre en groupe</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_groupe"><div class="slider-value" id="eval_groupe_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Différence voyage / mobilité internationale</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_difference"><div class="slider-value" id="eval_difference_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Motivation</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_motivation"><div class="slider-value" id="eval_motivation_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Anxiété / Peurs liées au départ</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="eval_anxiete_peurs"><div class="slider-value" id="eval_anxiete_peurs_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Page 8: Portrait de la mission -->
-        <div class="page" id="page8">
-            <h2>Portrait de la mission</h2>
-            <div class="input-zone">
-                <label>Pourquoi ce choix</label>
-                <textarea id="pourquoi_choix" placeholder="Pourquoi avez-vous choisi cette mission ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Ce que je cherche dans ce volontariat</label>
-                <textarea id="cherche_volontariat" placeholder="Qu'attendez-vous de ce volontariat ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 9: Motivations -->
-        <div class="page" id="page9">
-            <h2>Motivations</h2>
-            <div class="input-zone">
-                <label>Motivations</label>
-                <textarea id="motivations" placeholder="Quelles sont vos motivations ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Peurs et doutes</label>
-                <textarea id="peurs_doutes" placeholder="Quelles sont vos peurs et doutes ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 10: Portrait de la destination -->
-        <div class="page" id="page10">
-            <h2>Portrait de la destination</h2>
-            <div class="input-zone">
-                <label>Date et durée</label>
-                <input type="text" id="date_duree" placeholder="Date de départ et durée du séjour">
-            </div>
-            <div class="input-zone">
-                <label>Pourquoi cette destination</label>
-                <textarea id="pourquoi_destination" placeholder="Pourquoi avoir choisi cette destination ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Temps libre</label>
-                <textarea id="temps_libre" placeholder="Comment comptez-vous occuper votre temps libre ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 11: Première journée -->
-        <div class="page" id="page11">
-            <h2>Première journée</h2>
-            <div class="input-zone">
-                <label>Date</label>
-                <input type="date" id="premiere_journee_date">
-            </div>
-            <div class="input-zone">
-                <label>Ressenti</label>
-                <textarea id="premiere_journee_ressenti" placeholder="Comment s'est passée votre première journée ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Mot ou expression appris</label>
-                <input type="text" id="mot_appris" placeholder="Nouveau mot ou expression appris">
-            </div>
-        </div>
-
-        <!-- Page 12: Première semaine -->
-        <div class="page" id="page12">
-            <h2>Première semaine</h2>
-            <div class="input-zone">
-                <label>Date</label>
-                <input type="date" id="premiere_semaine_date">
-            </div>
-            <div class="input-zone">
-                <label>Activités</label>
-                <textarea id="premiere_semaine_activites" placeholder="Quelles activités avez-vous réalisées ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Difficulté et adaptation</label>
-                <textarea id="difficulte_adaptation" placeholder="Quelles difficultés avez-vous rencontrées ? Comment vous êtes-vous adapté ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 13: Mission en cours -->
-        <div class="page" id="page13">
-            <h2>Mission en cours</h2>
-            <div class="input-zone">
-                <label>Ce qui plaît</label>
-                <textarea id="ce_qui_plait" placeholder="Qu'est-ce qui vous plaît dans votre mission ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Ce qui plaît moins</label>
-                <textarea id="ce_qui_plait_moins" placeholder="Qu'est-ce qui vous plaît moins ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Temps libre</label>
-                <textarea id="mission_temps_libre" placeholder="Comment occupez-vous votre temps libre ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Préféré de la journée</label>
-                <textarea id="prefere_journee" placeholder="Quel est votre moment préféré de la journée ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 14: Au fil du temps 1 -->
-        <div class="page" id="page14">
-            <h2>Au fil du temps</h2>
-            <div class="input-zone">
-                <label>Date</label>
-                <input type="date" id="fil_temps_1_date">
-            </div>
-            <div class="repeatable-section">
-                <div class="section-title">Apprentissage mission</div>
+            
+            <!-- Page 8: Attentes et motivations -->
+            <div class="page" id="page8">
+                <h2>Mes attentes et motivations</h2>
                 <div class="input-zone">
-                    <label>Apprentissage</label>
-                    <textarea id="apprentissage_mission_1" placeholder="Qu'avez-vous appris dans votre mission ?"></textarea>
+                    <label>Ce qui t'a plu et ce que tu recherches</label>
+                    <textarea id="attentes_recherches" placeholder="Qu'est ce qui t'a plu dans la proposition et que recherches-tu dans cette expérience ?"></textarea>
                 </div>
             </div>
-            <div class="repeatable-section">
-                <div class="section-title">Découverte pays</div>
-                <div class="input-zone">
-                    <label>Découverte</label>
-                    <textarea id="decouverte_pays_1" placeholder="Qu'avez-vous découvert sur le pays ?"></textarea>
-                </div>
-            </div>
-            <div class="repeatable-section">
-                <div class="section-title">Découverte personnelle</div>
-                <div class="input-zone">
-                    <label>Découverte</label>
-                    <textarea id="decouverte_personnelle_1" placeholder="Qu'avez-vous découvert sur vous-même ?"></textarea>
-                </div>
-            </div>
-        </div>
 
-        <!-- Page 15: Au fil du temps 2 -->
-        <div class="page" id="page15">
-            <h2>Au fil du temps</h2>
-            <div class="input-zone">
-                <label>Date</label>
-                <input type="date" id="fil_temps_2_date">
+            <!-- Page 9: Motivations -->
+            <div class="page" id="page9">
+                <h2>Motivations & Appréhensions</h2>
+                <div class="input-zone"><label>Mes motivations profondes</label><textarea id="motivations" placeholder="Qu'est-ce qui te motive ?"></textarea></div>
+                <div class="input-zone"><label>Mes peurs et doutes</label><textarea id="peurs_doutes" placeholder="Quelles sont tes peurs et doutes ?"></textarea></div>
             </div>
-            <div class="repeatable-section">
-                <div class="section-title">Défis / moments marquants</div>
-                <div class="input-zone">
-                    <label>Défis</label>
-                    <textarea id="defis_marquants" placeholder="Quels défis avez-vous relevés ? Quels moments marquants ?"></textarea>
-                </div>
-            </div>
-            <div class="repeatable-section">
-                <div class="section-title">Peurs surmontées</div>
-                <div class="input-zone">
-                    <label>Peurs</label>
-                    <textarea id="peurs_surmontees" placeholder="Quelles peurs avez-vous surmontées ?"></textarea>
-                </div>
-            </div>
-            <div class="repeatable-section">
-                <div class="section-title">Rencontres marquantes</div>
-                <div class="input-zone">
-                    <label>Rencontres</label>
-                    <textarea id="rencontres_marquantes" placeholder="Quelles rencontres vous ont marqué ?"></textarea>
-                </div>
-            </div>
-        </div>
 
-        <!-- Page 16: Au fil du temps 3 -->
-        <div class="page" id="page16">
-            <h2>Au fil du temps</h2>
-            <div class="input-zone">
-                <label>Date</label>
-                <input type="date" id="fil_temps_3_date">
+            <!-- Page 10: Portrait de la destination -->
+            <div class="page" id="page10">
+                <h2>Portrait de la destination</h2>
+                <div class="input-zone"><label>Date et durée</label><input type="text" id="date_duree" placeholder="Date de départ et durée du séjour"></div>
+                <div class="input-zone"><label>Pourquoi cette destination ?</label><textarea id="pourquoi_destination" placeholder="Pourquoi avoir choisi cette destination ?"></textarea></div>
             </div>
-            <div class="repeatable-section">
-                <div class="section-title">Moyens de transport</div>
+
+            <!-- Page 11: Première journée -->
+            <div class="page" id="page11">
+                <h2>Première journée</h2>
+                <div class="input-zone"><label>Date</label><input type="date" id="premiere_journee_date"></div>
+                <div class="input-zone"><label>Ressenti</label><textarea id="premiere_journee_ressenti" placeholder="Comment s'est passée ta première journée ?"></textarea></div>
+            </div>
+
+            <!-- Page 12: Première semaine -->
+            <div class="page" id="page12">
+                <h2>Première semaine</h2>
+                <div class="input-zone"><label>Activités</label><textarea id="premiere_semaine_activites" placeholder="Quelles activités as-tu réalisées ?"></textarea></div>
+                <div class="input-zone"><label>Un moment précis que tu veux partager</label><textarea id="moment_partage" placeholder="Raconte un moment fort, une anecdote, une rencontre..."></textarea></div>
+            </div>
+
+            <!-- Page 13: Mission en cours -->
+            <div class="page" id="page13">
+                <h2>Mission en cours</h2>
+                <div class="input-zone"><label>Ce qui me plaît</label><textarea id="ce_qui_plait" placeholder="Qu'est-ce qui te plaît dans ta mission ?"></textarea></div>
+                <div class="input-zone"><label>Ce qui me plaît moins</label><textarea id="ce_qui_plait_moins" placeholder="Qu'est-ce qui te plaît moins ?"></textarea></div>
+            </div>
+
+            <!-- Page 14: Au fil du temps -->
+            <div class="page" id="page14">
+                <h2>Au fil du temps</h2>
+                <div class="input-zone"><label>Apprentissages (mission)</label><textarea id="apprentissage_mission_1" placeholder="Qu'as-tu appris dans ta mission ?"></textarea></div>
+                <div class="input-zone"><label>Découvertes (pays)</label><textarea id="decouverte_pays_1" placeholder="Qu'as-tu découvert sur le pays ?"></textarea></div>
+                <div class="input-zone"><label>Découvertes (personnel)</label><textarea id="decouverte_personnelle_1" placeholder="Qu'as-tu découvert sur toi-même ?"></textarea></div>
+            </div>
+
+            <!-- Page 15: Photos souvenirs -->
+            <div class="page" id="page15">
+                <h2>📸 Photos souvenirs</h2>
+                <h3>Ajoute trois photos qui représentent ton expérience</h3>
+                <div class="photo-upload-grid">
+                    <label class="photo-upload-box" for="photo1">
+                        <input type="file" id="photo1" class="photo-input" accept="image/*" data-preview="preview1">
+                        <img id="preview1" class="photo-preview" src="" alt="Aperçu photo 1">
+                        <div class="upload-prompt"><span>+</span>Cliquer pour ajouter</div>
+                    </label>
+                    <label class="photo-upload-box" for="photo2">
+                        <input type="file" id="photo2" class="photo-input" accept="image/*" data-preview="preview2">
+                        <img id="preview2" class="photo-preview" src="" alt="Aperçu photo 2">
+                        <div class="upload-prompt"><span>+</span>Cliquer pour ajouter</div>
+                    </label>
+                    <label class="photo-upload-box" for="photo3">
+                        <input type="file" id="photo3" class="photo-input" accept="image/*" data-preview="preview3">
+                        <img id="preview3" class="photo-preview" src="" alt="Aperçu photo 3">
+                        <div class="upload-prompt"><span>+</span>Cliquer pour ajouter</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Page 16: Moments marquants -->
+            <div class="page" id="page16">
+                <h2>Moments marquants</h2>
+                <div class="input-zone"><label>Défis / moments forts</label><textarea id="defis_marquants" placeholder="Quels défis as-tu relevés ?"></textarea></div>
+                <div class="input-zone"><label>Peurs surmontées</label><textarea id="peurs_surmontees" placeholder="Quelles peurs as-tu surmontées ?"></textarea></div>
+                <div class="input-zone"><label>Rencontres marquantes</label><textarea id="rencontres_marquantes" placeholder="Quelles rencontres t'ont marqué ?"></textarea></div>
+            </div>
+
+            <!-- Page 17: Évaluation au retour -->
+            <div class="page" id="page17">
+                <h2>Auto-évaluation au retour</h2>
+                <p class="evaluation-note">Échelle de 1 (le plus faible) à 5 (le plus fort)</p>
+                <div class="evaluation-grid">
+                    <div class="slider-container"><div class="slider-label">Compétences linguistiques</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_linguistiques"><div class="slider-value" id="retour_linguistiques_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Confiance en ma capacité à partir</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_confiance"><div class="slider-value" id="retour_confiance_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Prêt(e) à découvrir une nouvelle culture</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_culture"><div class="slider-value" id="retour_culture_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Vivre en groupe</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_groupe"><div class="slider-value" id="retour_groupe_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Différence voyage / mobilité internationale</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_difference"><div class="slider-value" id="retour_difference_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Motivation</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_motivation"><div class="slider-value" id="retour_motivation_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                    <div class="slider-container"><div class="slider-label">Anxiété / Peurs liées au départ</div><div class="slider-wrapper"><input type="range" min="1" max="5" value="3" class="slider" id="retour_anxiete_peurs"><div class="slider-value" id="retour_anxiete_peurs_value">3</div></div><div class="slider-labels"><span>1</span><span>5</span></div></div>
+                </div>
+            </div>
+
+            <!-- Page 18: Et maintenant ? -->
+            <div class="page" id="page18">
+                <h2>Et maintenant ?</h2>
                 <div class="input-zone">
-                    <label>Transport</label>
-                    <textarea id="moyens_transport" placeholder="Quels moyens de transport avez-vous utilisés ?"></textarea>
+                    <label>Mes réflexions, mes projets, mes envies...</label>
+                    <textarea id="et_maintenant" placeholder="Avec le recul, que tires-tu de cette expérience ? Quels sont tes projets pour la suite ? Comment ce voyage t'a-t-il changé(e) ?" style="min-height: 300px;"></textarea>
                 </div>
-            </div>
-            <div class="repeatable-section">
-                <div class="section-title">Situation d'adaptation</div>
-                <div class="input-zone">
-                    <label>Adaptation</label>
-                    <textarea id="situation_adaptation" placeholder="Décrivez une situation où vous avez dû vous adapter"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- Page 17: Évaluation retour -->
-        <div class="page" id="page17">
-            <h2>Évaluation retour</h2>
-            <div class="evaluation-grid">
-                <div class="slider-container">
-                    <div class="slider-label">Motivation</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_motivation">
-                        <div class="slider-value" id="retour_motivation_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Adaptation</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_adaptation">
-                        <div class="slider-value" id="retour_adaptation_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Stress</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_stress">
-                        <div class="slider-value" id="retour_stress_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Langue</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_langue">
-                        <div class="slider-value" id="retour_langue_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Différence voyage/volontariat</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_difference">
-                        <div class="slider-value" id="retour_difference_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Culture</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_culture">
-                        <div class="slider-value" id="retour_culture_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Savoir voyager</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_voyager">
-                        <div class="slider-value" id="retour_voyager_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label">Vivre en groupe</div>
-                    <div class="slider-wrapper">
-                        <input type="range" min="1" max="5" value="3" class="slider" id="retour_groupe">
-                        <div class="slider-value" id="retour_groupe_value">3</div>
-                    </div>
-                    <div class="slider-labels">
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Page 18: Adaptation à la vie locale -->
-        <div class="page" id="page18">
-            <h2>Adaptation à la vie locale</h2>
-            <div class="input-zone">
-                <label>Adaptation à la vie locale</label>
-                <textarea id="adaptation_vie_locale" placeholder="Comment vous êtes-vous adapté à la vie locale ?"></textarea>
-            </div>
-        </div>
-
-        <!-- Page 19: Retour - Et maintenant ? -->
-        <div class="page" id="page19">
-            <h2>Retour - Et maintenant ?</h2>
-            <div class="input-zone">
-                <label>Comment je me sens</label>
-                <textarea id="comment_je_me_sens" placeholder="Comment vous sentez-vous maintenant ?"></textarea>
-            </div>
-            <div class="input-zone">
-                <label>Et maintenant ?</label>
-                <textarea id="et_maintenant" placeholder="Quels sont vos projets maintenant ?"></textarea>
+                <button id="pdfBtn" class="pdf-btn" onclick="exportToPDF()">Générer le PDF</button>
             </div>
         </div>
     </div>
 
-    <!-- Indicateur de sauvegarde -->
-    <div class="save-indicator" id="saveIndicator">
-        ✓ Sauvegardé automatiquement
+    <!-- Navigation en bas de page -->
+    <div class="footer-nav">
+        <div class="nav-controls">
+            <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">← Précédent</button>
+            <div class="page-indicator">
+                <span id="currentPageNum">1</span> / <span id="totalPages">18</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changePage(1)">Suivant →</button>
+        </div>
     </div>
 
     <script>
         let currentPage = 1;
-        const totalPages = 19;
+        const pages = document.querySelectorAll('.page');
+        const totalPages = pages.length;
         
-        // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            updateNavigation();
             loadData();
+            updateNavigation();
             setupSliders();
             setupAutoSave();
-            setupKeyboardNavigation();
+            setupPhotoUploads();
         });
 
-        // Navigation entre pages
         function changePage(direction) {
             const newPage = currentPage + direction;
             if (newPage >= 1 && newPage <= totalPages) {
                 document.getElementById(`page${currentPage}`).classList.remove('active');
                 currentPage = newPage;
                 document.getElementById(`page${currentPage}`).classList.add('active');
+                window.scrollTo(0, 0);
                 updateNavigation();
                 saveData();
             }
@@ -1018,113 +530,102 @@
             document.getElementById('currentPageNum').textContent = currentPage;
             document.getElementById('totalPages').textContent = totalPages;
             
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
             
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-            
-            // Mise à jour de la barre de progression
-            const progress = (currentPage / totalPages) * 100;
+            const progress = ((currentPage -1) / (totalPages - 1)) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
         }
 
-        // Configuration des sliders
         function setupSliders() {
-            const sliders = document.querySelectorAll('.slider');
-            sliders.forEach(slider => {
+            document.querySelectorAll('.slider').forEach(slider => {
                 const valueDisplay = document.getElementById(slider.id + '_value');
-                
-                function updateSliderValue() {
+                const updateSliderValue = () => {
                     const value = slider.value;
-                    valueDisplay.textContent = value;
-                    
-                    // Position du label de valeur
-                    const percent = ((value - slider.min) / (slider.max - slider.min)) * 100;
-                    valueDisplay.style.left = percent + '%';
-                }
-                
+                    if (valueDisplay) {
+                        valueDisplay.textContent = value;
+                        const percent = ((value - slider.min) / (slider.max - slider.min)) * 100;
+                        valueDisplay.style.left = `calc(${percent}% - ${percent/100 * 12}px)`; // Center the tooltip
+                    }
+                };
                 slider.addEventListener('input', updateSliderValue);
-                updateSliderValue(); // Initialisation
+                updateSliderValue();
+            });
+        }
+        
+        function setupPhotoUploads() {
+            document.querySelectorAll('.photo-input').forEach(input => {
+                input.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        const previewId = event.target.dataset.preview;
+                        const preview = document.getElementById(previewId);
+                        
+                        reader.onload = function(e) {
+                            preview.src = e.target.result;
+                            preview.style.opacity = 1;
+                            saveData(); // Save image data
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
             });
         }
 
-        // Sauvegarde automatique
         function setupAutoSave() {
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('input', debounce(saveData, 1000));
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', debounce(saveData, 500));
+            });
+             document.querySelectorAll('.slider').forEach(input => {
+                input.addEventListener('change', debounce(saveData, 500));
             });
         }
 
         function saveData() {
             const data = {};
-            const inputs = document.querySelectorAll('input, textarea');
-            
-            inputs.forEach(input => {
-                if (input.id) {
-                    data[input.id] = input.value;
-                }
+            document.querySelectorAll('input, textarea, .slider').forEach(input => {
+                if (input.id) data[input.id] = input.value;
             });
-            
+            document.querySelectorAll('.photo-preview').forEach(img => {
+                if (img.id && img.src) data[img.id] = img.src;
+            });
             data.currentPage = currentPage;
-            localStorage.setItem('carnetVoyage', JSON.stringify(data));
-            showSaveIndicator();
+            localStorage.setItem('carnetVoyageData', JSON.stringify(data));
+            console.log('Data saved.');
         }
 
         function loadData() {
-            const savedData = localStorage.getItem('carnetVoyage');
+            const savedData = localStorage.getItem('carnetVoyageData');
             if (savedData) {
                 const data = JSON.parse(savedData);
-                
                 Object.keys(data).forEach(key => {
-                    if (key === 'currentPage') {
-                        if (data[key] !== currentPage) {
-                            document.getElementById(`page${currentPage}`).classList.remove('active');
-                            currentPage = data[key];
-                            document.getElementById(`page${currentPage}`).classList.add('active');
-                            updateNavigation();
-                        }
-                    } else {
-                        const element = document.getElementById(key);
-                        if (element) {
-                            element.value = data[key];
-                            
-                            // Mise à jour des sliders
-                            if (element.classList.contains('slider')) {
-                                const valueDisplay = document.getElementById(key + '_value');
-                                if (valueDisplay) {
-                                    valueDisplay.textContent = data[key];
-                                    const percent = ((data[key] - element.min) / (element.max - element.min)) * 100;
-                                    valueDisplay.style.left = percent + '%';
-                                }
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.tagName === 'IMG') {
+                            if(data[key].startsWith('data:image')){
+                                element.src = data[key];
+                                element.style.opacity = 1;
                             }
+                        } else {
+                           element.value = data[key];
+                        }
+
+                        if (element.classList.contains('slider')) {
+                           const event = new Event('input');
+                           element.dispatchEvent(event);
                         }
                     }
                 });
+                if (data.currentPage) {
+                   const oldPage = currentPage;
+                   currentPage = parseInt(data.currentPage, 10);
+                   document.getElementById(`page${oldPage}`).classList.remove('active');
+                   document.getElementById(`page${currentPage}`).classList.add('active');
+                }
             }
         }
 
-        function showSaveIndicator() {
-            const indicator = document.getElementById('saveIndicator');
-            indicator.classList.add('show');
-            setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 2000);
-        }
-
-        // Navigation clavier
-        function setupKeyboardNavigation() {
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowLeft' && currentPage > 1) {
-                    changePage(-1);
-                } else if (e.key === 'ArrowRight' && currentPage < totalPages) {
-                    changePage(1);
-                }
-            });
-        }
-
-        // Fonction utilitaire debounce
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -1137,11 +638,72 @@
             };
         }
 
-        // Export PDF (fonction de base)
         function exportToPDF() {
-            // Cette fonction nécessiterait une bibliothèque comme jsPDF
-            // pour une implémentation complète
-            alert('Fonction d\'export PDF à implémenter avec jsPDF');
+            const { jsPDF } = window.jspdf;
+            const content = document.getElementById('carnet-container');
+            const footer = document.querySelector('.footer-nav');
+            const header = document.querySelector('.nav-header');
+            const pdfBtn = document.getElementById('pdfBtn');
+            
+            // Masquer les éléments non désirés
+            footer.style.display = 'none';
+            header.style.display = 'none';
+            pdfBtn.style.display = 'none';
+
+            alert("La génération du PDF va commencer. Cela peut prendre quelques instants. Le fichier sera téléchargé automatiquement.");
+
+            html2canvas(content, {
+                scale: 2,
+                useCORS: true,
+                onclone: (doc) => {
+                    // Dans le clone du document, afficher toutes les pages
+                    doc.querySelectorAll('.page').forEach(page => {
+                        page.style.display = 'block';
+                    });
+                }
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                
+                const ratio = canvasWidth / pdfWidth;
+                const imgHeight = canvasHeight / ratio;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
+                }
+                
+                pdf.save('mon-carnet-de-voyage.pdf');
+                
+                // Réafficher les éléments masqués
+                footer.style.display = 'block';
+                header.style.display = 'block';
+                pdfBtn.style.display = 'block';
+            }).catch(err => {
+                console.error("Erreur lors de la génération du PDF:", err);
+                alert("Une erreur est survenue lors de la génération du PDF.");
+                // Réafficher les éléments en cas d'erreur
+                footer.style.display = 'block';
+                header.style.display = 'block';
+                pdfBtn.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
+
         }
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966d6dc804fa6056',t:'MTc1MzgwMDYyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
